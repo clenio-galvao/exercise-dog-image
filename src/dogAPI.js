@@ -4,34 +4,69 @@ import fetch from 'node-fetch';
 class DogApi extends React.Component {
   constructor() {
     super()
+
+    this.buscaDog = this.buscaDog.bind(this);
+    this.salvaDog = this.salvaDog.bind(this);
+    this.renderDog = this.renderDog.bind(this);
+
     this.state = {
-      dogUrl: '',
+      dogObj: undefined,
+      savedDogs: [],
+      loading: true,
+      terrier: false,
     }
   }
-  async buscaDog(url) {
-    const requestHead = { headers: { Accept: 'application/json'} };
-    const requestReturn = await fetch('https://dog.ceo/api/breeds/image/random', requestHead);
-    const requestObject = await requestReturn.json();
-    this.setState({ dogUrl: requestObject });
+
+  async buscaDog() {
+    this.setState({loading: true}, async () => {
+      const requestHead = { headers: { Accept: 'application/json'} };
+      const requestReturn = await fetch('https://dog.ceo/api/breeds/image/random', requestHead);
+      const requestObject = await requestReturn.json();
+      if (requestObject.message.includes('terrier')) {
+        this.setState({ dogObj: '', terrier: true, loading: false, })
+      } else {
+        this.setState({ 
+          dogObj: requestObject,
+          loading: false,
+          terrier: false,
+        });
+        const dogUrl = this.state.dogObj.message;
+        localStorage.setItem('urlDog', dogUrl);
+        alert(`Vem aí um lindo: ${dogUrl.split('/')[4]}`)
+      }
+    })
+  }
+
+  salvaDog() {
+    this.setState(({ savedDogs, dogObj }) => ({
+      savedDogs: [...savedDogs, dogObj]
+    }))
+
+    this.buscaDog();
   }
   
   componentDidMount() {
-    this.buscaDog();  
+    this.buscaDog();
   }
 
   renderDog() {
     return (
-      <img src={this.state.dogUrl} alt="dog lindo"/>
+      <div>
+        <img src={this.state.dogObj.message} alt="dog lindo"/>
+        <button type="button" onClick={this.salvaDog}>Buscar novo Dog</button>
+      </div>
     )
   }
 
   render() {
-    const { dogUrl } = this.state;
+    const { loading, terrier } = this.state;
     const renderLoading = <span>Loading...</span>
     return(
       <div>
-        { dogUrl ? <img src={ dogUrl.message } alt="dog lindo" /> : renderLoading }
+        { loading ? renderLoading : this.renderDog() }
+        <p>{terrier ? 'Imagem indisponível: Animal violento!!' : false}</p>
       </div>
+      
     );
   }
 }
