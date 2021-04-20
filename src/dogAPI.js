@@ -8,12 +8,14 @@ class DogApi extends React.Component {
     this.buscaDog = this.buscaDog.bind(this);
     this.salvaDog = this.salvaDog.bind(this);
     this.renderDog = this.renderDog.bind(this);
+    this.mudaName = this.mudaName.bind(this);
 
     this.state = {
-      dogObj: undefined,
-      savedDogs: [],
+      dogObj: '',
       loading: true,
       terrier: false,
+      dogName: '',
+      keyLocal: 0,
     }
   }
 
@@ -31,31 +33,40 @@ class DogApi extends React.Component {
           terrier: false,
         });
         const dogUrl = this.state.dogObj.message;
-        localStorage.setItem('urlDog', dogUrl);
+        // localStorage.setItem('urlDog', dogUrl);
         alert(`Vem aí um lindo: ${dogUrl.split('/')[4]}`)
       }
     })
   }
 
-  salvaDog() {
-    this.setState(({ savedDogs, dogObj }) => ({
-      savedDogs: [...savedDogs, dogObj]
-    }))
-
-    this.buscaDog();
+  salvaDog(event) {
+    event.target.innerText = 'Dog Salvo';
+    console.log(this.state.dogName)
+    this.setState(({ dogObj, keyLocal }) => ({[keyLocal]: keyLocal + 1}),
+      localStorage.setItem(keyLocal, dogObj.message))
   }
-  
-  componentDidMount() {
-    this.buscaDog();
+
+  mudaName(event) {
+    this.setState({dogName: event.target.value})
   }
 
   renderDog() {
     return (
       <div>
-        <img src={this.state.dogObj.message} alt="dog lindo"/>
-        <button type="button" onClick={this.salvaDog}>Buscar novo Dog</button>
+        <form>
+          <img src={this.state.dogObj.message} alt="dog lindo"/>
+          <input type="text" placeholder="Dê um nome ao doginho" onChange={this.mudaName}></input>
+          <button type="button" onClick={this.buscaDog}>Buscar novo Dog</button>
+          <button type="button" onClick={this.salvaDog}>Salvar Dog</button>
+        </form>
       </div>
     )
+  }
+
+  componentDidMount() {
+    
+      this.buscaDog();
+    
   }
 
   render() {
